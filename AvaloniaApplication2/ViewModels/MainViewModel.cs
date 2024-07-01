@@ -1,16 +1,29 @@
 ﻿using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Input;
 using ReactiveUI;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using AvaloniaApplication2.Models;
+using AvaloniaApplication2.Views;
 
 namespace AvaloniaApplication2.ViewModels
 {
     public class MainViewModel : ViewModelBase
     {
+        private string _newTaskTitle;
         private string _newTaskDescription;
         private TaskItem _selectedTask;
+        private readonly AppDbContext _dbContext;
 
         public ObservableCollection<TaskItem> Tasks { get; } = new ObservableCollection<TaskItem>();
+
+        public string NewTaskTitle
+        {
+            get => _newTaskTitle;
+            set => this.RaiseAndSetIfChanged(ref _newTaskTitle, value);
+        }
 
         public string NewTaskDescription
         {
@@ -26,18 +39,39 @@ namespace AvaloniaApplication2.ViewModels
 
         public ICommand AddTaskCommand { get; }
         public ICommand RemoveTaskCommand { get; }
+        public ICommand EditTaskCommand { get; }
 
         public MainViewModel()
         {
+            _dbContext = new AppDbContext();
+            _dbContext.Database.EnsureCreated();
+            LoadTasks();
+
             AddTaskCommand = ReactiveCommand.Create(AddTask);
             RemoveTaskCommand = ReactiveCommand.Create(RemoveTask);
+            EditTaskCommand = ReactiveCommand.Create(EditTask);
+        }
+
+        private void LoadTasks()
+        {
+            var tasks = _dbContext.Tasks.ToList();
+            Tasks.Clear();
+            foreach (var task in tasks)
+            {
+                Tasks.Add(task);
+            }
         }
 
         private void AddTask()
         {
-            if (!string.IsNullOrWhiteSpace(NewTaskDescription))
+            if (!string.IsNullOrWhiteSpace(NewTaskTitle) && !string.IsNullOrWhiteSpace(NewTaskDescription))
             {
-                Tasks.Add(new TaskItem { Description = NewTaskDescription });
+                var task = new TaskItem { Title = NewTaskTitle, Description = NewTaskDescription };
+                _dbContext.Tasks.Add(task);
+                _dbContext.SaveChanges();
+
+                Tasks.Add(task);
+                NewTaskTitle = string.Empty;
                 NewTaskDescription = string.Empty;
             }
         }
@@ -46,7 +80,25 @@ namespace AvaloniaApplication2.ViewModels
         {
             if (SelectedTask != null)
             {
+                _dbContext.Tasks.Remove(SelectedTask);
+                _dbContext.SaveChanges();
+
                 Tasks.Remove(SelectedTask);
+            }
+        }
+
+        private async void EditTask()
+        {
+            if (SelectedTask != null)
+            {
+                var editWindow = new EditTaskWindow(new EditTaskViewModel(SelectedTask));
+                var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+                if (mainWindow != null)
+                {
+                    await editWindow.ShowDialog(mainWindow);
+                    _dbContext.SaveChanges();
+                    LoadTasks();
+                }
             }
         }
     }

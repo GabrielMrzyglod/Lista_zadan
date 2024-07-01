@@ -6,22 +6,38 @@
         x:Class="AvaloniaApplication2.Views.MainWindow"
         mc:Ignorable="d"
         Title="To-Do App"
-        Width="400" Height="450">
-    <Window.DataContext>
-        <vm:MainViewModel />
-    </Window.DataContext>
-    <StackPanel Margin="10">
-        <TextBox Text="{Binding NewTaskDescription}" Width="300" />
-        <StackPanel Orientation="Horizontal" Margin="5">
-            <Button Command="{Binding AddTaskCommand}" Content="Add Task" Width="100" Margin="5"/>
-            <Button Command="{Binding RemoveTaskCommand}" Content="Remove Task" Width="100" Margin="5"/>
-        </StackPanel>
-        <ListBox ItemsSource="{Binding Tasks}" SelectedItem="{Binding SelectedTask}">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding Description}" />
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-    </StackPanel>
+        Width="400" Height="500">
+	<Window.DataContext>
+		<vm:MainViewModel />
+	</Window.DataContext>
+	<StackPanel Margin="10">
+		<StackPanel Orientation="Vertical" Margin="0,0,0,5">
+			<TextBlock Text="Enter Task Title" Margin="0,0,0,5"/>
+			<TextBox Text="{Binding NewTaskTitle}" Width="300"/>
+		</StackPanel>
+		<StackPanel Orientation="Vertical" Margin="0,0,0,10">
+			<TextBlock Text="Enter Task Description" Margin="0,0,0,5"/>
+			<TextBox Text="{Binding NewTaskDescription}" Width="300"/>
+		</StackPanel>
+		<StackPanel Orientation="Horizontal" Margin="5">
+			<Button Command="{Binding AddTaskCommand}" Content="Add Task" Width="100" Margin="5"/>
+			<Button Command="{Binding RemoveTaskCommand}" Content="Remove Task" Width="100" Margin="5"/>
+			<Button Command="{Binding EditTaskCommand}" Content="Edit Task" Width="100" Margin="5"/>
+		</StackPanel>
+		<Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Margin="5" Width="300" Height="200">
+			<ScrollViewer>
+				<ListBox ItemsSource="{Binding Tasks}" SelectedItem="{Binding SelectedTask}" Margin="5">
+					<ListBox.ItemTemplate>
+						<DataTemplate>
+							<StackPanel>
+								<TextBlock Text="{Binding Title}" FontWeight="Bold"/>
+								<TextBlock Text="{Binding Description}" TextWrapping="Wrap"/>
+								<Separator Margin="5,10"/>
+							</StackPanel>
+						</DataTemplate>
+					</ListBox.ItemTemplate>
+				</ListBox>
+			</ScrollViewer>
+		</Border>
+	</StackPanel>
 </Window>
