@@ -40,6 +40,7 @@ namespace AvaloniaApplication2.ViewModels
         public ICommand AddTaskCommand { get; }
         public ICommand RemoveTaskCommand { get; }
         public ICommand EditTaskCommand { get; }
+        public ICommand ToggleTaskCompletionCommand { get; }
 
         public MainViewModel()
         {
@@ -50,6 +51,7 @@ namespace AvaloniaApplication2.ViewModels
             AddTaskCommand = ReactiveCommand.Create(AddTask);
             RemoveTaskCommand = ReactiveCommand.Create(RemoveTask);
             EditTaskCommand = ReactiveCommand.Create(EditTask);
+            ToggleTaskCompletionCommand = ReactiveCommand.Create<TaskItem>(ToggleTaskCompletion);
         }
 
         private void LoadTasks()
@@ -66,7 +68,7 @@ namespace AvaloniaApplication2.ViewModels
         {
             if (!string.IsNullOrWhiteSpace(NewTaskTitle) && !string.IsNullOrWhiteSpace(NewTaskDescription))
             {
-                var task = new TaskItem { Title = NewTaskTitle, Description = NewTaskDescription };
+                var task = new TaskItem { Title = NewTaskTitle, Description = NewTaskDescription, IsCompleted = false };
                 _dbContext.Tasks.Add(task);
                 _dbContext.SaveChanges();
 
@@ -99,6 +101,16 @@ namespace AvaloniaApplication2.ViewModels
                     _dbContext.SaveChanges();
                     LoadTasks();
                 }
+            }
+        }
+
+        private void ToggleTaskCompletion(TaskItem task)
+        {
+            if (task != null)
+            {
+                task.IsCompleted = !task.IsCompleted;
+                _dbContext.Tasks.Update(task);
+                _dbContext.SaveChanges();
             }
         }
     }
